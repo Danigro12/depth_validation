@@ -21,7 +21,7 @@ with open(path_list,'r') as input:
         path_to_file.append(line.strip())
 
 def importar_dataset(path_to_file):
-    file_name = path_to_file.strip().split('\\')[-1]
+    file_name = path_to_file.strip().split('/')[-1]
     file_name = file_name.replace(".thresholds.bed.gz", "")
     stats = {}
 
@@ -71,3 +71,4 @@ for file in path_to_file:
 with pd.ExcelWriter('mosdepth_validation.xlsx', engine = 'openpyxl') as writer:
     for nome_aba, df in tabela_final.items():
         df.to_excel(writer,sheet_name=nome_aba,index=False)
+
