@@ -4,9 +4,10 @@
 
 # Var ------------------------------------------------------------------------------
 input_list="$1"
+md_results_paths="$2"
 input_crai="$input_list.crai"
 input_file="$(basename $input_list)"
-bed_file="/mnt/ssd/MegaBOLT_scheduler/reference/db/db_BED/${2:-"annotated_WES_15intron_hg38_RefSeq.bed"}"
+bed_file="${3:-"/mnt/ssd/MegaBOLT_scheduler/reference/db/db_BED/annotated_UCSC_hg38_exome_15padding_corrected_sorted.bed"}"
 sample_name=$(basename "$input_list" | awk -F '.' '{print $1}')
 output_dir="md_out_$sample_name"
 mosdepth_bin="/mnt/ssd/MegaBOLT_scheduler/bin/mosdepth"
@@ -63,6 +64,8 @@ mv md_"$sample_name"* $output_dir
 echo "Copiando para origem: $origin_path"
 mkdir -p $origin_path/mosdepth_out
 mv $output_dir/* $origin_path/mosdepth_out
+
+find $origin_path/mosdepth_out -type f -iname "*.thresholds.bed.gz" | xargs realpath >> $md_results_paths
 
 rm -r $tempdir
 rm -r $output_dir

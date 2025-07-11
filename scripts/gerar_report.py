@@ -8,11 +8,14 @@ import os
 
 #Variables
 path_list = sys.argv[1]
+coberturas = [x.strip() for x in sys.argv[2].split(',')]
 path_to_file = []
-tabela_final = {
-    'classification': pd.DataFrame(),
-    'scores': pd.DataFrame()
-}
+
+#Dicionário com os dataframes para cada cobertura
+tabela_final = {}
+for cobertura in coberturas:
+    tabela_final[f'classification{cobertura}'] = pd.DataFrame()
+    tabela_final[f'scores{cobertura}'] = pd.DataFrame()
 
 #Parsing input files
 with open(path_list,'r') as input:
@@ -23,22 +26,21 @@ with open(path_list,'r') as input:
 def importar_dataset(path_to_file):
     file_name = path_to_file.strip().split('\\')[-1]
     file_name = file_name.replace(".thresholds.bed.gz", "")
-    stats = {}
 
     #Importing Mosdepth Output and selecting its columns
     mosdepth_output = pd.read_table(path_to_file, sep='\t', compression = 'gzip')
-    mosdepth_output = mosdepth_output.loc[:, ['#chrom', 'start', 'end', 'region', '0X', '30X']]
-
+    cols = ['#chrom', 'start', 'end', 'region', '0X'] + [f'{c}X' for c in coberturas]
+    mosdepth_output = mosdepth_output.loc[:, cols]
     #Extract Gene Name by regex
     mosdepth_output['gene_name'] = mosdepth_output['region'].str.extract(r"^([^.]*)")
 
-    #Setting validation column, to see x30 depth of which exon
-    mosdepth_output[f'score_{file_name}'] = mosdepth_output['30X'] - mosdepth_output['0X']
+    #Setting validation column, to see 30x and 20x depth of which exon
+    mosdepth_output[f'score{cobertura}_{file_name}'] = mosdepth_output[f'{cobertura}X'] - mosdepth_output['0X']
 
     gene_size = mosdepth_output.groupby('gene_name', as_index=False)['0X'].agg('sum')
 
-    #Aggregation of values from which exon, to get depth by gene
-    df_agrupado = mosdepth_output.groupby('gene_name', as_index=False)[f'score_{file_name}'].agg('sum')
+    #Aggregation of values from which exon, to get depth 30x by gene
+    df_agrupado = mosdepth_output.groupby('gene_name', as_index=False)[f'score30_{file_name}'].agg('sum')
     df_agrupado[f'{file_name}'] = df_agrupado[f'score_{file_name}'].apply(
         lambda x: 'OK' if x == 0 else ('OUT' if x < 0 else np.nan))  # Changed NA to np.nan
 
