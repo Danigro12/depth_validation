@@ -2,7 +2,7 @@
 
 files_path=$1
 report_name=$2
-output_dir=$3
+output_dir=$(dirname $files_path)
 
 if [ -z "$files_path" ] || [ -z "$report_name" ] || [ -z "$output_dir" ]; then
     echo "Usage: $0 <files_path> <report_name> <output_dir>"
